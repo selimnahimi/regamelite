@@ -131,6 +131,7 @@ CSysModule *Sys_LoadModule(const char *pModuleName)
 #else
 	HMODULE hDLL  = nullptr;
 	char szAbsoluteModuleName[1024];
+#ifndef __ANDROID__
 	if (pModuleName[0] != '/')
 	{
 		char szCwd[1024];
@@ -142,6 +143,7 @@ CSysModule *Sys_LoadModule(const char *pModuleName)
 		hDLL = dlopen(szAbsoluteModuleName, RTLD_NOW);
 	}
 	else
+#endif
 	{
 		_snprintf(szAbsoluteModuleName, sizeof(szAbsoluteModuleName), "%s", pModuleName);
 		hDLL = dlopen(pModuleName, RTLD_NOW);

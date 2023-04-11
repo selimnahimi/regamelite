@@ -253,7 +253,7 @@ SpewRetval_t _DSpewMessage(const char *pGroupName, int level, const char *pMsg, 
 	} while (0)
 
 // Spew macros...
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(_WIN64)
 
 #define Assert(_exp)                                  _Assert(_exp)
 #define AssertMsg(_exp, _msg)                         _AssertMsg(_exp, _msg)

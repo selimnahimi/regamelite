@@ -1,119 +1,8 @@
-#----------------------------------------
-# 1. Preparing build:
-#    rm -rf build
-#    mkdir build && cd build
-#
-# 2. Select compiler and build it
-# - Compile with Clang:
-#    CC="clang" CXX="clang++" cmake ..
-#    make
-#
-# - Compile with Intel C++ Compiler:
-#    CC="icc" CXX="icpc" cmake ..
-#    make
-#
-# - Compile with GCC Compiler:
-#    cmake ..
-#    make
-#----------------------------------------
-
 cmake_minimum_required(VERSION 3.1)
 project(regamedll CXX)
 
-option(DEBUG "Build with debug information." OFF)
-option(USE_STATIC_LIBSTDC "Enables static linking libstdc++." OFF)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Avoid -rdynamic -fPIC options
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "")
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-
-set(COMPILE_FLAGS "-m32 -U_FORTIFY_SOURCE")
-set(LINK_FLAGS "-m32 -s")
-
-set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wall -fno-exceptions -fno-builtin -Wno-unknown-pragmas")
-
-# Remove noxref code and data
-set(COMPILE_FLAGS "${COMPILE_FLAGS} -ffunction-sections -fdata-sections")
-
-if (DEBUG)
-	set(COMPILE_FLAGS "${COMPILE_FLAGS} -g3 -O3 -ggdb")
-else()
-	set(COMPILE_FLAGS "${COMPILE_FLAGS} -g0 -O3 -fno-stack-protector")
-endif()
-
-# Check Intel C++ compiler
-if ("$ENV{CXX}" MATCHES "icpc")
-	#
-	# -fp-model=precise
-	# ICC uses -fp-model fast=1 by default for more aggressive optimizations on floating-point calculations
-	# https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/compiler-options/compiler-option-details/floating-point-options/fp-model-fp.html#fp-model-fp_GUID-99936BBA-1508-4E9F-AC09-FA98613CE2F5
-	#
-	set(COMPILE_FLAGS "${COMPILE_FLAGS} \
-		-fp-model=precise\
-		-fasm-blocks\
-		-Qoption,cpp,--treat_func_as_string_literal_cpp")
-
-	#
-	# -qno-opt-class-analysis
-	# Don't use c++ class hierarchy for analyze and resolve C++ virtual function calls at compile time
-	#
-	# Example issue:
-	# Expected: FF .. call dword ptr + offset, pEntity->Spawn();
-	# Got:      E8 .. call CBaseEntity::Spawn();
-	#
-	set(LINK_FLAGS "${LINK_FLAGS} \
-		-qno-opt-class-analysis\
-		-static-intel\
-		-no-intel-extensions")
-
-	if (NOT DEBUG)
-		set(COMPILE_FLAGS "${COMPILE_FLAGS} -ipo")
-		set(LINK_FLAGS "${LINK_FLAGS} -ipo")
-	endif()
-else()
-	# Produce code optimized for the most common IA32/AMD64/EM64T processors.
-	# As new processors are deployed in the marketplace, the behavior of this option will change.
-	set(COMPILE_FLAGS "${COMPILE_FLAGS} \
-		-mtune=generic -msse3\
-		-fpermissive -fno-sized-deallocation\
-		-Wno-delete-non-virtual-dtor -Wno-invalid-offsetof\
-		-Wno-unused-variable -Wno-unused-value -Wno-unused-result -Wno-unused-function\
-		-Wno-write-strings -Wno-switch -Wno-enum-compare\
-		-Wno-sign-compare -Wno-format -Wno-ignored-attributes -Wno-strict-aliasing")
-
-	# Check Clang compiler
-	if ("$ENV{CXX}" MATCHES "clang")
-		set(COMPILE_FLAGS "${COMPILE_FLAGS} \
-			-Wno-unused-local-typedef\
-			-Wno-unused-private-field\
-			-fno-strict-vtable-pointers\
-			-Wno-overloaded-virtual")
-	else()
-		set(COMPILE_FLAGS "${COMPILE_FLAGS} \
-			-fno-plt\
-			-fno-devirtualize\
-			-Wno-unused-local-typedefs\
-			-Wno-unused-but-set-variable")
-
-		# GCC >= 8.3
-		if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0)
-			set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-stringop-truncation -Wno-format-truncation -Wno-class-memaccess")
-		endif()
-	endif()
-endif()
-
-# GCC >= 8.3
-if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0)
-	set(COMPILE_FLAGS "${COMPILE_FLAGS} -fcf-protection=none")
-endif()
-
-if (NOT DEBUG)
-	set(LINK_FLAGS "${LINK_FLAGS} \
-		-Wl,-gc-sections -Wl,--version-script=\"${PROJECT_SOURCE_DIR}/../version_script.lds\"")
-endif()
 
 set(PROJECT_SRC_DIR
 	"${PROJECT_SOURCE_DIR}"
@@ -124,10 +13,6 @@ set(PROJECT_SRC_DIR
 	"${PROJECT_SOURCE_DIR}/pm_shared"
 	"${PROJECT_SOURCE_DIR}/regamedll"
 	"${PROJECT_SOURCE_DIR}/unittests"
-)
-
-set(PROJECT_CPPUNITLITE_DIR
-	"${PROJECT_SOURCE_DIR}/../dep/cppunitlite/include"
 )
 
 set(PROJECT_PUBLIC_DIR
@@ -297,26 +182,13 @@ set(GAMEDLL_SRCS
 	"dlls/hostage/states/hostage_retreat.cpp"
 )
 
-set(UNITTESTS_SRCS
-	"unittests/animation_tests.cpp"
-	"unittests/struct_offsets_tests.cpp"
-	"unittests/TestRunner.cpp"
-)
-
-if (CMAKE_BUILD_TYPE MATCHES Unittests)
-	if (NOT TARGET cppunitlite)
-		add_subdirectory(../dep/cppunitlite cppunitlite)
-	endif()
-
-	set(LINK_FLAGS "${LINK_FLAGS} -no-pie -Wl,--no-export-dynamic")
-	add_executable(regamedll ${appversion.sh})
-else()
-	add_library(regamedll SHARED ${appversion.sh})
+if(MSVC)
+	set(GAMEDLL_SRCS ${GAMEDLL_SRCS} "msvc/mp.def" "public/tier0/dbg.cpp")
 endif()
 
-if (NOT TARGET appversion)
-	add_custom_target(appversion DEPENDS COMMAND "${PROJECT_SOURCE_DIR}/version/appversion.sh" "${PROJECT_SOURCE_DIR}/..")
-endif()
+add_library(regamedll MODULE ${appversion.sh})
+
+add_custom_target(appversion DEPENDS COMMAND "${PROJECT_SOURCE_DIR}/version/appversion.sh" "${PROJECT_SOURCE_DIR}/..")
 
 add_dependencies(regamedll appversion)
 
@@ -334,50 +206,67 @@ target_compile_definitions(regamedll PRIVATE
 	BUILD_LATEST
 	CLIENT_WEAPONS
 	USE_QSTRING
-	_LINUX
-	LINUX
-	NDEBUG
-	_GLIBCXX_USE_CXX11_ABI=0
-	_stricmp=strcasecmp
-	_strnicmp=strncasecmp
-	_strdup=strdup
-	_unlink=unlink
-	_vsnprintf=vsnprintf
-	_write=write
-	_close=close
-	_access=access
-	_vsnwprintf=vswprintf
 )
+
+if(NOT MSVC)
+	target_compile_definitions(regamedll PRIVATE
+		_LINUX
+		LINUX
+		_GLIBCXX_USE_CXX11_ABI=0
+		_stricmp=strcasecmp
+		_strnicmp=strncasecmp
+		_strdup=strdup
+		_unlink=unlink
+		_vsnprintf=vsnprintf
+		_write=write
+		_close=close
+		_access=access
+		_vsnwprintf=vswprintf
+	)
+
+    target_compile_options(regamedll PRIVATE
+        -U_FORTIFY_SOURCE
+        -fms-extensions
+        -fpermissive
+        -Wno-write-strings
+        -fno-exceptions
+    )
+endif()
 
 target_sources(regamedll PRIVATE
 	${GAMEDLL_SRCS}
 	${ENGINE_SRCS}
 	${SHARED_SRCS}
-
-	$<$<CONFIG:Unittests>:
-	${UNITTESTS_SRCS}>
 )
 
-target_link_libraries(regamedll PRIVATE
-	dl
-	aelf32
-
-	$<$<CONFIG:Unittests>:cppunitlite>
-)
-
-if (USE_STATIC_LIBSTDC)
-	target_compile_definitions(regamedll PRIVATE BUILD_STATIC_LIBSTDC)
-	set(LINK_FLAGS "${LINK_FLAGS} -static-libgcc -static-libstdc++")
+if(ANDROID)
+	set_target_properties(regamedll PROPERTIES OUTPUT_NAME server)
+else()
+    set_target_properties(regamedll PROPERTIES OUTPUT_NAME cs PREFIX "")
 endif()
 
-set(LINK_FLAGS "${LINK_FLAGS} \
-	-Wl,-rpath,'$ORIGIN/.' \
-	-L${PROJECT_SOURCE_DIR}/lib/linux32")
+if(MSVC)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
 
-set_target_properties(regamedll PROPERTIES
-	OUTPUT_NAME cs
-	PREFIX ""
-	COMPILE_FLAGS ${COMPILE_FLAGS}
-	LINK_FLAGS ${LINK_FLAGS}
-	POSITION_INDEPENDENT_CODE OFF
-)
+	set_target_properties(regamedll PROPERTIES OUTPUT_NAME mp)
+
+	# Install PDB file on Windows
+	install(FILES $<TARGET_PDB_FILE:regamedll>
+		DESTINATION "${GAME_DIR}/${SERVER_INSTALL_DIR}/" OPTIONAL)
+else()
+	target_link_libraries(regamedll PRIVATE dl)
+
+	# if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+	# 	set(LINK_FLAGS "${LINK_FLAGS} -L${PROJECT_SOURCE_DIR}/lib/linux32")
+	# 	target_link_libraries(regamedll PRIVATE aelf32)
+	# 	set_target_properties(regamedll PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+	# endif()
+
+	set(LINK_FLAGS "${LINK_FLAGS} -Wl,-rpath,'$ORIGIN/.'")
+endif()
+
+install(TARGETS regamedll
+		DESTINATION "${GAME_DIR}/${SERVER_INSTALL_DIR}/"
+		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+		GROUP_READ GROUP_EXECUTE
+		WORLD_READ WORLD_EXECUTE)
