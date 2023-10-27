@@ -242,8 +242,13 @@ public:
 	void SetBlocked(void (T::*pfn)(CBaseEntity *pOther));
 	void SetBlocked(std::nullptr_t);
 
+	void SetDmgPenetrationLevel(int iPenetrationLevel);
+	void ResetDmgPenetrationLevel();
+	int GetDmgPenetrationLevel() const;
+
 #ifdef REGAMEDLL_API
 	CCSEntity *m_pEntity;
+	CCSEntity *CSEntity() const;
 #else
 	// We use this variables to store each ammo count.
 	// let's sacrifice this unused member, for its own needs in favor of m_pEntity
@@ -328,6 +333,13 @@ inline void CBaseEntity::SetBlocked(std::nullptr_t)
 	m_pfnBlocked = nullptr;
 }
 
+#ifdef REGAMEDLL_API
+inline CCSEntity *CBaseEntity::CSEntity() const
+{
+	return m_pEntity;
+}
+#endif
+
 class CPointEntity: public CBaseEntity {
 public:
 	virtual void Spawn();
@@ -369,6 +381,7 @@ public:
 	float SetBoneController(int iController, float flValue = 0.0f);
 	void InitBoneControllers();
 
+	float GetSequenceDuration() const;
 	float SetBlending(int iBlender, float flValue);
 	void GetBonePosition(int iBone, Vector &origin, Vector &angles);
 	void GetAutomovement(Vector &origin, Vector &angles, float flInterval = 0.1f);

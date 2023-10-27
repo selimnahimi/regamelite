@@ -45,6 +45,8 @@ This means that plugins that do binary code analysis (Orpheu for example) probab
 | mp_round_restart_delay             | 5       | -   | -            | Number of seconds to delay before restarting a round after a win. |
 | mp_hegrenade_penetration           | 0       | 0   | 1            | Disable grenade damage through walls.<br/>`0` disabled<br/>`1` enabled |
 | mp_nadedrops                       | 0       | 0   | 2            | Drop a grenade after player death.<br/>`0` disabled<br/>`1` drop first available grenade<br/>`2` drop all grenades |
+| mp_weapondrop                      | 1       | 0   | 3            | Drop player weapon after death.<br/>`0` do not drop weapons after death<br/>`1` drop best/heaviest weapon after death<br/>`2` drop active weapon after death<br/>`3` drop all weapons after death (primary and secondary) |
+| mp_ammodrop                        | 1       | 0   | 2            | Drop ammo on weapon boxes on death or manual drop.<br/>`0` always keep ammo on player<br/>`1` drop all ammo only after death<br/>`2` drop all ammo whenever player drops a weapon |
 | mp_roundrespawn_time               | 20      | 0   | -            | Player cannot respawn until next round if more than N seconds has elapsed since the beginning round.<br />`-1` means no time limit<br /> |
 | mp_auto_reload_weapons             | 0       | 0   | 1            | Automatically reload each weapon on player spawn.<br/>`0` disabled<br/>`1` enabled |
 | mp_refill_bpammo_weapons           | 0       | 0   | 2            | Refill amount of backpack ammo up to the max.<br/>`0` disabled<br/>`1` refill backpack ammo on player spawn<br/>`2` refill backpack ammo on player spawn and on the purchase of the item |
@@ -98,6 +100,7 @@ This means that plugins that do binary code analysis (Orpheu for example) probab
 | mp_give_player_c4                  | 1       | 0   | 1            | Whether this map should spawn a C4 bomb for a player or not.<br/> `0` disabled<br/>`1` enabled |
 | mp_weapons_allow_map_placed        | 1       | 0   | 1            | When set, map weapons (located on the floor by map) will be shown.<br/> `0` hide all map weapons.<br/>`1` enabled<br/>`NOTE`: Effect will work after round restart. |
 | mp_free_armor                      | 0       | 0   | 2            | Give free armor on player spawn.<br/>`0` disabled <br/>`1` Give Kevlar <br/>`2` Give Kevlar + Helmet |
+| mp_team_flash                      | 1       | -1  | 1            | Sets the behaviour for Flashbangs on teammates.<br/>`-1` Don't affect teammates neither flash owner <br/>`0` Don't affect teammates <br/>`1` Affects teammates |
 | mp_fadetoblack                     | 0       | 0   | 2            | Observer's screen will fade to black on kill event or permanent.<br/> `0` No fade.<br/>`1` Fade to black and won't be able to watch anybody.<br/>`2` fade to black only on kill moment. |
 | mp_falldamage                      | 1       | 0   | 1            | Damage from falling.<br/>`0` disabled <br/>`1` enabled |
 | sv_allchat                         | 1       | 0   | 1            | Players can receive all other players text chat, team restrictions apply<br/>`0` disabled <br/>`1` enabled |
@@ -107,6 +110,9 @@ This means that plugins that do binary code analysis (Orpheu for example) probab
 | mp_give_c4_frags                   | 3       | -   | -            | How many bonuses (frags) will get the player who defused or exploded the bomb. |
 | mp_hostages_rescued_ratio          | 1.0     | 0.0 | 1.0          | Ratio of hostages rescued to win the round. |
 | mp_legacy_vehicle_block            | 1       | 0   | 1            | Legacy func_vehicle behavior when blocked by another entity.<br/>`0` New behavior <br/>`1` Legacy behavior |
+| mp_dying_time                      | 3.0     | 0.0 | -            | Time for switch to free observing after death.<br/>`0` - disable spectating around death.<br/>`>0.00001` - time delay to start spectate.<br/>`NOTE`: The countdown starts when the player’s death animation is finished. |
+| mp_deathmsg_flags                  | 7       | 0   | 7            | Sets a bitsum for extra information in the player's death message.<br/>`0` disabled<br/>`1` position where the victim died<br/>`2` index of the assistant who helped the attacker kill the victim<br/>`4` rarity classification bits, e.g., `blinkill`, `noscope`, `penetrated`, etc. |
+| mp_assist_damage_threshold         | 40      | 0   | 100          | Sets the percentage of damage needed to score an assist. |
 </details>
 
 ## How to install zBot for CS 1.6?

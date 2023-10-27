@@ -46,6 +46,7 @@ const float ROUND_RESPAWN_TIME  = 20.0f;
 const float ROUND_BEGIN_DELAY   = 5.0f;	// delay before beginning new round
 const float ITEM_KILL_DELAY     = 300.0f;
 const float RADIO_TIMEOUT       = 1.5f;
+const float DEATH_ANIMATION_TIME = 3.0f;
 
 const int MAX_INTERMISSION_TIME = 120;	// longest the intermission can last, in seconds
 
@@ -186,6 +187,10 @@ enum
 	GR_PLR_DROP_AMMO_ALL,
 	GR_PLR_DROP_AMMO_ACTIVE,
 	GR_PLR_DROP_AMMO_NO,
+
+#ifdef REGAMEDLL_ADD
+	GR_PLR_DROP_GUN_BEST,
+#endif
 };
 
 // custom enum
@@ -202,7 +207,7 @@ enum
 	SCENARIO_BLOCK_PRISON_ESCAPE_TIME      = BIT(8), // flag "i"
 	SCENARIO_BLOCK_BOMB_TIME               = BIT(9), // flag "j"
 	SCENARIO_BLOCK_HOSTAGE_RESCUE_TIME     = BIT(10), // flag "k"
-	
+
 };
 
 // Player relationship return codes
@@ -213,6 +218,41 @@ enum
 	GR_ENEMY,
 	GR_ALLY,
 	GR_NEUTRAL,
+};
+
+// The number of times you must kill a given player to be dominating them
+// Should always be more than 1
+const int CS_KILLS_FOR_DOMINATION = 4;
+
+// Flags for specifying extra info about player death
+enum DeathMessageFlags
+{
+	// float[3]
+	// Position where the victim was killed by the enemy
+	PLAYERDEATH_POSITION          = 0x001,
+
+	// byte
+	// Index of the assistant who helped the attacker kill the victim
+	PLAYERDEATH_ASSISTANT         = 0x002,
+
+	// short
+	// Bitsum classification for the rarity of the kill
+	// See enum KillRarity for details
+	PLAYERDEATH_KILLRARITY        = 0x004
+};
+
+// Classifying various player kill methods in the game
+enum KillRarity
+{
+	KILLRARITY_HEADSHOT         = 0x001, // Headshot
+	KILLRARITY_KILLER_BLIND     = 0x002, // Killer was blind
+	KILLRARITY_NOSCOPE          = 0x004, // No-scope sniper rifle kill
+	KILLRARITY_PENETRATED       = 0x008, // Penetrated kill (through walls)
+	KILLRARITY_THRUSMOKE        = 0x010, // Smoke grenade penetration kill (bullets went through smoke)
+	KILLRARITY_ASSISTEDFLASH    = 0x020, // Assister helped with a flash
+	KILLRARITY_DOMINATION_BEGAN = 0x040, // Killer player began dominating the victim (NOTE: this flag is set once)
+	KILLRARITY_DOMINATION       = 0x080, // Continues domination by the killer
+	KILLRARITY_REVENGE          = 0x100  // Revenge by the killer
 };
 
 class CItem;
@@ -332,6 +372,7 @@ public:
 	inline void SetGameOver() { m_bGameOver = true; }
 	static float GetItemKillDelay();
 	static float GetRadioTimeout();
+	static float GetDyingTime();
 
 public:
 	BOOL m_bFreezePeriod;	// TRUE at beginning of round, set to FALSE when the period expires
@@ -537,7 +578,7 @@ public:
 	// check if the scenario has been won/lost
 	virtual void CheckWinConditions();
 	virtual void RemoveGuns();
-	virtual void GiveC4();
+	virtual CBasePlayer *GiveC4();
 	virtual void ChangeLevel();
 	virtual void GoToIntermission();
 
@@ -560,10 +601,15 @@ public:
 	void RestartRound_OrigFunc();
 	void CheckWinConditions_OrigFunc();
 	void RemoveGuns_OrigFunc();
-	void GiveC4_OrigFunc();
+	CBasePlayer *GiveC4_OrigFunc();
 	void ChangeLevel_OrigFunc();
 	void GoToIntermission_OrigFunc();
 	void BalanceTeams_OrigFunc();
+	void Think_OrigFunc();
+	BOOL TeamFull_OrigFunc(int team_id);
+	BOOL TeamStacked_OrigFunc(int newTeam_id, int curTeam_id);
+	void PlayerGotWeapon_OrigFunc(CBasePlayer *pPlayer, CBasePlayerItem *pWeapon);
+	void SendDeathMessage_OrigFunc(CBaseEntity *pKiller, CBasePlayer *pVictim, CBasePlayer *pAssister, entvars_t *pevInflictor, const char *killerWeaponName, int iDeathMessageFlags, int iRarityOfKill);
 #endif
 
 public:
@@ -687,6 +733,10 @@ public:
 
 	VFUNC bool HasRoundTimeExpired();
 	VFUNC bool IsBombPlanted();
+
+	void SendDeathMessage(CBaseEntity *pKiller, CBasePlayer *pVictim, CBasePlayer *pAssister, entvars_t *pevInflictor, const char *killerWeaponName, int iDeathMessageFlags, int iRarityOfKill);
+	int GetRarityOfKill(CBaseEntity *pKiller, CBasePlayer *pVictim, CBasePlayer *pAssister, const char *killerWeaponName, bool bFlashAssist);
+	CBasePlayer *CheckAssistsToKill(CBaseEntity *pKiller, CBasePlayer *pVictim, bool &bFlashAssist);
 
 private:
 	void MarkLivingPlayersOnTeamAsNotReceivingMoneyNextRound(int iTeam);
@@ -914,6 +964,15 @@ inline float CGameRules::GetRadioTimeout()
 	return radio_timeout.value;
 #else
 	return RADIO_TIMEOUT;
+#endif
+}
+
+inline float CGameRules::GetDyingTime()
+{
+#ifdef REGAMEDLL_ADD
+	return dying_time.value;
+#else
+	return DEATH_ANIMATION_TIME;
 #endif
 }
 

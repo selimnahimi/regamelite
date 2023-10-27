@@ -35,6 +35,7 @@ public:
 	CCSEntity() :
 		m_pContainingEntity(nullptr)
 	{
+		m_ucDmgPenetrationLevel = 0;
 	}
 
 	virtual ~CCSEntity() {}
@@ -44,11 +45,14 @@ public:
 
 public:
 	CBaseEntity *m_pContainingEntity;
+	unsigned char m_ucDmgPenetrationLevel; // penetration level of the damage caused by the inflictor
 
 private:
 #if defined(_MSC_VER)
-#pragma region reserve_vfuncs_Region
+#pragma region reserve_data_Region
 #endif
+	char CCSEntity_Reserve[0x3FFF];
+
 	virtual void func_reserve1() {};
 	virtual void func_reserve2() {};
 	virtual void func_reserve3() {};
@@ -84,28 +88,59 @@ private:
 #endif
 };
 
+inline void CBaseEntity::SetDmgPenetrationLevel(int iPenetrationLevel)
+{
+#ifdef REGAMEDLL_API
+	m_pEntity->m_ucDmgPenetrationLevel = iPenetrationLevel;
+#endif
+}
+
+inline void CBaseEntity::ResetDmgPenetrationLevel()
+{
+#ifdef REGAMEDLL_API
+	m_pEntity->m_ucDmgPenetrationLevel = 0;
+#endif
+}
+
+inline int CBaseEntity::GetDmgPenetrationLevel() const
+{
+#ifdef REGAMEDLL_API
+	return m_pEntity->m_ucDmgPenetrationLevel;
+#else
+	return 0;
+#endif
+}
+
 class CCSDelay: public CCSEntity
 {
 public:
 
+private:
+	int CCSDelay_Reserve[0x100];
 };
 
 class CCSAnimating: public CCSDelay
 {
 public:
 
+private:
+	int CCSAnimating_Reserve[0x100];
 };
 
 class CCSToggle: public CCSAnimating
 {
 public:
 
+private:
+	int CCSToggle_Reserve[0x100];
 };
 
 class CCSMonster: public CCSToggle
 {
 public:
 
+private:
+	int CCSMonster_Reserve[0x100];
 };
 
-#define CSENTITY_API_INTERFACE_VERSION "CSENTITY_API_INTERFACE_VERSION002"
+#define CSENTITY_API_INTERFACE_VERSION "CSENTITY_API_INTERFACE_VERSION003"
