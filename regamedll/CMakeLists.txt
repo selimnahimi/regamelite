@@ -4,6 +4,14 @@ project(regamedll CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(ANDROID)
+	set(REGAME_LIB server)
+elseif(WIN32)
+	set(REGAME_LIB mp)
+else()
+	set(REGAME_LIB cs)
+endif()
+
 set(PROJECT_SRC_DIR
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_SOURCE_DIR}/engine"
@@ -187,19 +195,19 @@ if(MSVC)
 	set(GAMEDLL_SRCS ${GAMEDLL_SRCS} "msvc/mp.def" "public/tier0/dbg.cpp")
 endif()
 
-add_library(regamedll MODULE ${appversion.sh})
+add_library(${REGAME_LIB} MODULE ${appversion.sh})
 
 add_custom_target(appversion DEPENDS COMMAND "${PROJECT_SOURCE_DIR}/version/appversion.sh" "${PROJECT_SOURCE_DIR}/..")
 
-add_dependencies(regamedll appversion)
+add_dependencies(${REGAME_LIB} appversion)
 
-target_include_directories(regamedll PRIVATE
+target_include_directories(${REGAME_LIB} PRIVATE
 	${PROJECT_SRC_DIR}
 	${PROJECT_CPPUNITLITE_DIR}
 	${PROJECT_PUBLIC_DIR}
 )
 
-target_compile_definitions(regamedll PRIVATE
+target_compile_definitions(${REGAME_LIB} PRIVATE
 	REGAMEDLL_FIXES
 	REGAMEDLL_API
 	REGAMEDLL_ADD
@@ -210,7 +218,7 @@ target_compile_definitions(regamedll PRIVATE
 )
 
 if(NOT MSVC)
-	target_compile_definitions(regamedll PRIVATE
+	target_compile_definitions(${REGAME_LIB} PRIVATE
 		_LINUX
 		LINUX
 		_GLIBCXX_USE_CXX11_ABI=0
@@ -225,7 +233,7 @@ if(NOT MSVC)
 		_vsnwprintf=vswprintf
 	)
 
-    target_compile_options(regamedll PRIVATE
+    target_compile_options(${REGAME_LIB} PRIVATE
         -U_FORTIFY_SOURCE
         -fms-extensions
         -fpermissive
@@ -234,28 +242,22 @@ if(NOT MSVC)
     )
 endif()
 
-target_sources(regamedll PRIVATE
+target_sources(${REGAME_LIB} PRIVATE
 	${GAMEDLL_SRCS}
 	${ENGINE_SRCS}
 	${SHARED_SRCS}
 )
 
-if(ANDROID)
-	set_target_properties(regamedll PROPERTIES OUTPUT_NAME server)
-else()
-    set_target_properties(regamedll PROPERTIES OUTPUT_NAME cs PREFIX "")
-endif()
+set_target_postfix(${REGAME_LIB})
 
 if(MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
 
-	set_target_properties(regamedll PROPERTIES OUTPUT_NAME mp)
-
 	# Install PDB file on Windows
-	install(FILES $<TARGET_PDB_FILE:regamedll>
+	install(FILES $<TARGET_PDB_FILE:${REGAME_LIB}>
 		DESTINATION "${GAME_DIR}/${SERVER_INSTALL_DIR}/" OPTIONAL)
 else()
-	target_link_libraries(regamedll PRIVATE dl)
+	target_link_libraries(${REGAME_LIB} PRIVATE dl)
 
 	# if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	# 	set(LINK_FLAGS "${LINK_FLAGS} -L${PROJECT_SOURCE_DIR}/lib/linux32")
@@ -266,7 +268,7 @@ else()
 	set(LINK_FLAGS "${LINK_FLAGS} -Wl,-rpath,'$ORIGIN/.'")
 endif()
 
-install(TARGETS regamedll
+install(TARGETS ${REGAME_LIB}
 		DESTINATION "${GAME_DIR}/${SERVER_INSTALL_DIR}/"
 		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
 		GROUP_READ GROUP_EXECUTE
