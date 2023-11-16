@@ -215,6 +215,7 @@ target_compile_definitions(${REGAME_LIB} PRIVATE
 	BUILD_LATEST
 	CLIENT_WEAPONS
 	USE_QSTRING
+	NDEBUG
 )
 
 if(NOT MSVC)
