@@ -66,27 +66,33 @@
 	#include <sys/stat.h>
 	#include <io.h>
 #else // _WIN32
-	#include <arpa/inet.h>
 	#include <ctype.h>
 	//#include <dirent.h>
-	#include <dlfcn.h>
 	#include <elf.h>
 	#include <errno.h>
 	#include <fcntl.h>
 	#include <limits.h>
-	#include <link.h>
-	#include <netdb.h>
-	#include <netinet/in.h>
 	#include <pthread.h>
-	#include <sys/ioctl.h>
-	#include <sys/mman.h>
-	#include <sys/socket.h>
 	#include <sys/stat.h>
 	#include <sys/time.h>
 	#include <sys/types.h>
-	#include <sys/sysinfo.h>
 	#include <unistd.h>
-#endif // _WIN32
+	#ifndef __3DS__
+		#include <arpa/inet.h>
+		#include <dlfcn.h>
+		#include <link.h>
+		#include <sys/mman.h>
+		#include <sys/sysinfo.h>
+		#include <netdb.h>
+		#include <netinet/in.h>
+		#include <sys/ioctl.h>
+		#include <sys/socket.h>
+	#endif
+#endif
+
+#ifdef __3DS__
+	#define RTLD_NOW 0
+#endif
 
 #include <string>
 #include <sstream>
@@ -143,7 +149,7 @@
 	inline void sys_freemem(void* ptr, unsigned int size) {
 		VirtualFree(ptr, 0, MEM_RELEASE);
 	}
-#else // _WIN32
+#elif !defined __3DS__  // _WIN32
 	#ifndef PAGESIZE
 		#define PAGESIZE 4096
 	#endif
@@ -211,7 +217,35 @@
 	#ifndef TRUE
 	#define TRUE	1
 	#endif
-#endif // _WIN32
+#elif defined __3DS__
+	#define EXPORT
+
+	#ifndef PAGESIZE
+		#define PAGESIZE 4096
+	#endif
+	#define ALIGN(addr) (size_t)((size_t)addr & ~(PAGESIZE-1))
+	#define ARRAYSIZE(p) (sizeof(p)/sizeof(p[0]))
+
+	#define _MAX_FNAME NAME_MAX
+	#define MAX_PATH 260
+
+	typedef void *HWND;
+
+	typedef unsigned long DWORD;
+	typedef unsigned short WORD;
+	typedef unsigned int UNINT32;
+
+	#define FASTCALL
+	#define __FUNC__ __func__
+	#define CDECL __attribute__ ((cdecl))
+	#define STDCALL __attribute__ ((stdcall))
+	#define HIDDEN __attribute__((visibility("hidden")))
+	#define FORCEINLINE inline
+	#define NOINLINE __attribute__((noinline))
+	#define ALIGN16 __attribute__((aligned(16)))
+	#define NORETURN __attribute__((noreturn))
+	#define FORCE_STACK_ALIGN __attribute__((force_align_arg_pointer))
+#endif
 
 #ifdef _WIN32
 	static const bool __isWindows = true;

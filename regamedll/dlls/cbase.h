@@ -33,6 +33,12 @@
 #include "saverestore.h"
 #include "scriptevent.h"
 #include "monsterevent.h"
+#include "external/physcallback.h"
+
+// C functions for external declarations that call the appropriate C++ methods
+extern "C" EXPORT int GetEntityAPI( DLL_FUNCTIONS *pFunctionTable, int interfaceVersion );
+extern "C" EXPORT int GetEntityAPI2( DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion );
+extern "C" EXPORT int Server_GetPhysicsInterface( int iVersion, server_physics_api_t *pfuncsFromEngine, physics_interface_t *pFunctionTable );
 
 class CSave;
 class CRestore;

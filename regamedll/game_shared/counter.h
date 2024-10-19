@@ -40,7 +40,7 @@
 	#include <unistd.h>
 	#ifdef OSX
 		#include <limits.h>
-	#else
+	#elif defined __linux__
 		#include <linux/limits.h>
 	#endif
 	#include <sys/time.h>

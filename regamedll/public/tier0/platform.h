@@ -78,8 +78,6 @@
 #define DLL_GLOBAL_EXPORT extern
 #define DLL_GLOBAL_IMPORT extern
 
-#else
-#error "Unsupported Platform."
 #endif
 
 #ifdef _WIN32
