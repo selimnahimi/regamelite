@@ -566,59 +566,61 @@ bool SaveNavigationMap(const char *filename)
 	// Store the NAV file
 	Q_FixSlashes(const_cast<char *>(filename));
 
-#ifdef WIN32
-	int fd = _open(filename, _O_BINARY | _O_CREAT | _O_WRONLY, _S_IREAD | _S_IWRITE);
-#else
-	int fd = creat(filename, S_IRUSR | S_IWUSR | S_IRGRP);
-#endif // WIN32
+	// XASH3DS: TODO FIX
+	return false;
+// #ifdef WIN32
+// 	int fd = _open(filename, _O_BINARY | _O_CREAT | _O_WRONLY, _S_IREAD | _S_IWRITE);
+// #else
+// 	int fd = creat(filename, S_IRUSR | S_IWUSR | S_IRGRP);
+// #endif // WIN32
 
-	if (fd < 0)
-		return false;
+// 	if (fd < 0)
+// 		return false;
 
-	// store "magic number" to help identify this kind of file
-	unsigned int magic = NAV_MAGIC_NUMBER;
-	_write(fd, &magic, sizeof(unsigned int));
+// 	// store "magic number" to help identify this kind of file
+// 	unsigned int magic = NAV_MAGIC_NUMBER;
+// 	_write(fd, &magic, sizeof(unsigned int));
 
-	// store version number of file
-	unsigned int version = NAV_VERSION;
-	_write(fd, &version, sizeof(unsigned int));
+// 	// store version number of file
+// 	unsigned int version = NAV_VERSION;
+// 	_write(fd, &version, sizeof(unsigned int));
 
-	// get size of source bsp file and store it in the nav file
-	// so we can test if the bsp changed since the nav file was made
-	char *bspFilename = GetBspFilename();
-	if (!bspFilename)
-		return false;
+// 	// get size of source bsp file and store it in the nav file
+// 	// so we can test if the bsp changed since the nav file was made
+// 	char *bspFilename = GetBspFilename();
+// 	if (!bspFilename)
+// 		return false;
 
-	unsigned int bspSize = (unsigned int)GET_FILE_SIZE(bspFilename);
-	CONSOLE_ECHO("Size of bsp file '%s' is %u bytes.\n", bspFilename, bspSize);
+// 	unsigned int bspSize = (unsigned int)GET_FILE_SIZE(bspFilename);
+// 	CONSOLE_ECHO("Size of bsp file '%s' is %u bytes.\n", bspFilename, bspSize);
 
-	_write(fd, &bspSize, sizeof(unsigned int));
+// 	_write(fd, &bspSize, sizeof(unsigned int));
 
-	// Build a directory of the Places in this map
-	placeDirectory.Reset();
+// 	// Build a directory of the Places in this map
+// 	placeDirectory.Reset();
 
-	for (auto area : TheNavAreaList)
-	{
-		Place place = area->GetPlace();
-		if (place) {
-			placeDirectory.AddPlace(place);
-		}
-	}
+// 	for (auto area : TheNavAreaList)
+// 	{
+// 		Place place = area->GetPlace();
+// 		if (place) {
+// 			placeDirectory.AddPlace(place);
+// 		}
+// 	}
 
-	placeDirectory.Save(fd);
+// 	placeDirectory.Save(fd);
 
-	// Store navigation areas
-	// store number of areas
-	unsigned int count = TheNavAreaList.size();
-	_write(fd, &count, sizeof(unsigned int));
+// 	// Store navigation areas
+// 	// store number of areas
+// 	unsigned int count = TheNavAreaList.size();
+// 	_write(fd, &count, sizeof(unsigned int));
 
-	// store each area
-	for (auto area : TheNavAreaList) {
-		area->Save(fd, version);
-	}
+// 	// store each area
+// 	for (auto area : TheNavAreaList) {
+// 		area->Save(fd, version);
+// 	}
 
-	_close(fd);
-	return true;
+// 	_close(fd);
+// 	return true;
 }
 
 // Load place map

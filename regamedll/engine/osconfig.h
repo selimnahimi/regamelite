@@ -91,6 +91,7 @@
 #endif
 
 #ifdef __3DS__
+	#include "dll_ctr.h"
 	#define RTLD_NOW 0
 #endif
 

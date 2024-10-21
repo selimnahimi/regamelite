@@ -33,6 +33,10 @@
 	#include "windows.h"
 #endif // _WIN32
 
+#ifdef __3DS__
+	#include "dll_ctr.h"
+#endif
+
 // InterfaceReg
 InterfaceReg *InterfaceReg::s_pInterfaceRegs = nullptr;
 

@@ -4,6 +4,7 @@
 // Holds engine functionality callbacks
 enginefuncs_t g_engfuncs;
 globalvars_t *gpGlobals;
+server_physics_api_t g_physfuncs;
 
 // Receive engine function table from engine.
 // This appears to be the _first_ DLL routine called by the engine, so we
@@ -215,7 +216,6 @@ void func_snow( entvars_t *pev );
 void env_rain( entvars_t *pev );
 void func_rain( entvars_t *pev );
 void env_fog( entvars_t *pev );
-void mapClassName( entvars_t *pev );
 void func_vehicle( entvars_t *pev );
 void func_vehiclecontrols( entvars_t *pev );
 void weaponbox( entvars_t *pev );
@@ -263,11 +263,14 @@ void weapon_ump45( entvars_t *pev );
 void weapon_usp( entvars_t *pev );
 void weapon_xm1014( entvars_t *pev );
 
+#ifndef _H_DLLEXPORT_S
+#define _H_DLLEXPORT_S
 typedef struct dllexport_s
 {
 	const char *name;
 	void *func;
 } dllexport_t;
+#endif
 
 dllexport_t ctr_server_exports[] = {
 	{ "GiveFnptrsToDll", (void*)GiveFnptrsToDll },
@@ -433,7 +436,6 @@ dllexport_t ctr_server_exports[] = {
 	{ "env_rain", (void*)env_rain },
 	{ "func_rain", (void*)func_rain },
 	{ "env_fog", (void*)env_fog },
-	{ "mapClassName", (void*)mapClassName },
 	{ "func_vehicle", (void*)func_vehicle },
 	{ "func_vehiclecontrols", (void*)func_vehiclecontrols },
 	{ "weaponbox", (void*)weaponbox },
