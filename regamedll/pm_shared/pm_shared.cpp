@@ -3236,7 +3236,9 @@ LINK_HOOK_VOID_CHAIN(PM_Init, (struct playermove_s *ppmove), ppmove);
 
 void EXT_FUNC __API_HOOK(PM_Init)(struct playermove_s *ppmove)
 {
+#if 0
 	assert(!pm_shared_initialized);
+#endif
 
 	pmove = ppmove;
 

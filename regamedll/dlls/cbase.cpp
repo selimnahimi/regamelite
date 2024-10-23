@@ -284,7 +284,7 @@ C_DLLEXPORT int GetEntityAPI(DLL_FUNCTIONS *pFunctionTable, int interfaceVersion
 	return 1;
 }
 
-NOXREF int GetEntityAPI2(DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion)
+C_DLLEXPORT int GetEntityAPI2(DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion)
 {
 	if (!pFunctionTable || *interfaceVersion != INTERFACE_VERSION)
 	{
@@ -293,6 +293,13 @@ NOXREF int GetEntityAPI2(DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion)
 	}
 
 	Q_memcpy(pFunctionTable, &gFunctionTable, sizeof(DLL_FUNCTIONS));
+	stringsHashTable.AddMultipleToTail(2048);
+	for (int i = 0; i < stringsHashTable.Count(); i++)
+	{
+		stringsHashTable[i].next = nullptr;
+	}
+
+	EmptyEntityHashTable();
 	return 1;
 }
 

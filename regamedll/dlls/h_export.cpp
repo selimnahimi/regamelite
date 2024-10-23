@@ -14,7 +14,8 @@ C_DLLEXPORT void WINAPI GiveFnptrsToDll(enginefuncs_t *pEnginefuncsTable, global
 	Q_memcpy(&g_engfuncs, pEnginefuncsTable, sizeof(enginefuncs_t));
 	gpGlobals = pGlobals;
 
-	FileSystem_Init();
+	// XASH3DS: FIXME
+	// FileSystem_Init();
 	Regamedll_Game_Init();
 }
 
@@ -223,14 +224,14 @@ void armoury_entity( entvars_t *pev );
 void infodecal( entvars_t *pev );
 void bodyque( entvars_t *pev );
 void worldspawn( entvars_t *pev );
-void item_airbox( entvars_t *pev );
-void point_clientcommand( entvars_t *pev );
-void point_servercommand( entvars_t *pev );
+ void item_airbox( entvars_t *pev );
+ void point_clientcommand( entvars_t *pev );
+ void point_servercommand( entvars_t *pev );
 void trigger_random( entvars_t *pev );
 void trigger_random_time( entvars_t *pev );
 void trigger_random_unique( entvars_t *pev );
 void trigger_setorigin( entvars_t *pev );
-void bot( entvars_t *pev );
+ void bot( entvars_t *pev );
 void hostage_entity( entvars_t *pev );
 void monster_scientist( entvars_t *pev );
 void weapon_ak47( entvars_t *pev );

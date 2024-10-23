@@ -605,7 +605,8 @@ bool BotPhraseManager::Initialize(const char *filename, int bankIndex)
 #ifdef REGAMEDLL_ADD
 				Q_snprintf(filePath, sizeof(filePath), "sound\\%s%s", baseDir, token);
 
-				if (!g_pFileSystem->FileExists(filePath))
+				// XASH3DS: FIXME
+				//if (!g_pFileSystem->FileExists(filePath))
 					continue;
 #endif
 
