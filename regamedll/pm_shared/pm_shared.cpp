@@ -18,6 +18,12 @@ BOOL g_onladder = FALSE;
 	float vJumpAngles[3];
 #endif
 
+#ifdef __3DS__
+
+#define AngleVectors ( *g_engfuncs.pfnAngleVectors )
+
+#endif
+
 void PM_SwapTextures(int i, int j)
 {
 	char chTemp;

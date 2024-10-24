@@ -28,6 +28,20 @@
 
 #pragma once
 
+// HACK: this enables us to have two different symbols for this shit in
+// server and client static libs, eliminating linking conflicts without effort
+#ifdef _3DS
+#ifdef CLIENT_DLL
+#define gpGlobals cl_gpGlobals
+#define g_engfuncs g_cl_engfuncs
+#define g_physfuncs g_cl_physfuncs
+#else
+#define gpGlobals sv_gpGlobals
+#define g_engfuncs g_sv_engfuncs
+#define g_physfuncs g_sv_physfuncs
+#endif
+#endif
+
 #include "shake.h"
 #include "activity.h"
 #include "enginecallback.h"
